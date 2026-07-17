@@ -2,14 +2,14 @@
   hosts: all
   become: yes
 
-  tasks: 
-     - name: Install Nginx
-       yum:
-         name: Nginx
-         state: present
+  tasks:
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: present
 
-     - name: Enablr Nginx
-       service:
-        name: Nginx
+    - name: Enable Nginx
+      service:
+        name: nginx
         state: started
-        enabled: yes 
+        enabled: yes
