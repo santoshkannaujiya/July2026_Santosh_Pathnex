@@ -1,4 +1,4 @@
-- name: Install Nginx on Pathnex server
+- name: Install and start Nginx on Pathnex
   hosts: all
   become: yes
 
@@ -7,3 +7,9 @@
       yum:
         name: nginx
         state: present
+
+    - name: Enable Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
