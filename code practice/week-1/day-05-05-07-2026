@@ -1,0 +1,93 @@
+# Day 05 - Handlers, User-Data, Resources Limits
+
+## Ansible - Handler to Restart Nginx
+
+- - - 
+- name: Manage Nginx
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update config file
+      copy:
+        src: index.html
+        dest: /usr/share/nginx/html/index.html
+       notify:: Restart Nginx
+
+       handlers:
+         - name: Restart Nginx
+           service:
+             name: nginx
+             state: restarted
+                 
+
+##  terraform - EC2 with User data (c6a.12xlarge)
+
+resource "aws_instance" "PathnexEC2" {
+    ami           = "ami-0abcd1234abcd1234"
+    instance_type = "c6a.12xlarge"
+
+    user_data = <<EOF
+   #!/bin/bash
+   yum install start httpd
+   EOF
+
+
+      tags = {
+        name = "Pathnex-EC2"
+      }
+
+}
+
+## Kubernetes - Resource Limits
+
+apiversion: v1
+kind: pod 
+metadata:
+   name: pathnex-limited-pod
+spec:
+  containers:
+    - name: app
+    image: nginx
+    resources:
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+
+
+# Day-05  - Environmnet Variables
+
+## jenkins pipeline - use Environmnet Variable
+ we will learn how to use ** environmnet vavriables in jenkins pipelines
+
+ pipelines {
+    agent any 
+    environment {
+        INSTITUTE_NAME = "Pathnex"
+    } 
+    stages {
+        stages('Print') {
+            steps {
+                sh 'echo "Welcome to $INSTITUTE_NAME Devops Training"'
+            }
+        }
+        stage('Build ') {
+            steps {
+                sh 'mvn clean package -Dinstitute.name=$INSTITUTE_NAME'
+            }
+        }
+    }
+ }
+
+ ## GitLab CI - Use Environmnet Variable
+ we will learn how to ** use ** CI Variables in GitLab pipelines**
+
+ stages:
+   - build 
+
+variable:
+  INSTITUTE_NAME:"Pathnex"
+
+  build:
+    stage: build 
+    image:maven3.8.1-jdk-17   
