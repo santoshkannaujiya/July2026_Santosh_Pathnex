@@ -1,0 +1,181 @@
+```
+- name Install packages for Pathnex using variables      # Play ka naam
+  host: all              # Inventory ka sabhi taget server par run hoga
+  become: yes            # Root/sudo privileges use karenge 
+
+
+
+  vars:                  # Variables define karne ka section 
+    pathnex_packages:    # Variables ka naam 
+      - tree             # ZIP files exctract karne ka tool 
+      - vim              # Text editor 
+
+
+
+    tasks:               # Tasks ki list yahan start hoti hai 
+      - name: Install required package # Task ka descriptive 
+       yum:              # RHEL/CentOS jaise system ka package manager
+         name: "{{ pathnex_package }}" # variables ki poori package list use kro 
+         state: present  # Ensure karo ki package installed hon 
+
+         
+
+# TERRAFORM - AWS VPC + SUBNET 
+
+provider "aws"  {              # AWS provider configure karo 
+    region = "us-east-1"       # Resource is aws region mein manage honge
+
+}
+
+resource "aws_vpc" "pathnexVPC"{ # aws mein vpc resource define karo
+  cidr_block = "10.10.0.0/16"    # aws console memin pehchanne wala naam 
+  tags = {                       # resource ka labels define karo 
+    name = "Pathnex-VPC"         # AWS console mein pehchanane wala name  
+      }
+  }
+
+
+resource "aws_subnet" "PathnexSubnet" { # VPC ke andar subnet definr karo
+vpc_id = aws_vpc.PathnexVPC.id           # upar banayi VPC KI ID use kro 
+cidr_block = "10.10.1.0/24"               # subnet ka ip  adress range
+
+map_public_ip_on launch = true # supported instance ko auto public IPv4
+                               # mil sakta hai; ye akela subnet ko public
+                               # nahi banata 
+ 
+ 
+tags = {                       # subnet ka labels 
+name = "Pathnex-subnet"        # subnet ka naam 
+  } 
+}
+
+
+
+
+
+apiversion: v1                 # kubernetes API version 
+kind: pod                      # ki pod create krni hai 
+
+
+metadata:                      # pod ki metadata
+   name: pathnex-probe         # pod ka naam 
+
+
+spec:                         # pod ki desired configuration 
+  containers:                 # containers ki list 
+    - name: web               # containers ka naam 
+      image: nginx            # NGINX  Docker image use kro 
+
+
+
+      livenessProbe:          # check karo ki application healthy hai ya nhi
+      httpGet:                # HTTP request se health check karo 
+      path: /                 # websitet ka root url check karo
+      port: 80                # container ke port 80 pr request bhejo 
+      initialDelaySecoponds: 5   # container start hone ke bad initially wait 
+
+
+
+readinessProbe          # container start hone ke bad initial wait 
+       
+ httpget:                # Http request se readiness check karo
+  path: /                 # root URL check karo 
+  port: 80                # port 80 par request bhejo 
+ initialdelayseonds: 3    # readiness check se phele initiallhy wait 
+
+
+
+
+
+ #!/bin/bash               # script bash interpreter se run hogi
+ for item in pathnex devops training ; # har value par loop chalao echo "Item: $item"                   
+                            # current item ak terminal par point karo
+done                        # Loop khatam 
+
+
+
+
+
+
+# Jenkins Pipeline — Conditional Execution
+
+pipeline {  // Declarative ka naam 
+   agent any   // available jenkins agent par run karo 
+   parameters{  //user-input parameters
+         string(
+            name: 'Environment'  //Parameter ka purpose
+
+         )
+    }
+    environmnet {         // pipeline environment variable
+         INSTITUTE_NAME = "PATHNEX   // variable mein institute ka naam "}
+
+         stages {        //pipeline ke stages yahan define hote hain 
+         stage('checkout') {   // source code checkout stage
+            steps {             // satges mein execute hone wala steps
+                 git branch: 'mein',
+                     url: https://github.com/Pathnex/sample-java-app.git'    // github se main branch ka code checkout karo 
+                     }
+            }
+         stage ('Build') {       // build stage
+              when {             // stages run karne ki condition 
+              branch 'main'      // main branch par hi run karne ka rule}
+              steps{
+                sh 'mvn clean compile'  // maven se clean karke java code compile karo
+
+              }
+        }
+         stage ('deploy') {         // deploy stage
+             when {                  // deployment ki condition 
+                 expression { 
+                    params.ENVIRONMENT == 'dev'    // parameter dev ho tabhi stage run karo 
+                 }
+                 
+            }
+                steps {
+                    sh 'echo "deployment to $ENVIRONMENT by $INSTITUTE_NAME"'       //shell mein deployment msg print karo 
+                                            // ye command actual deployment nhi krti
+
+                
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+6. #GitLab CI — Conditional Jobs
+
+
+
+stages:                         # Pipeline ke stages define karo
+  - build                       # Pehla stage: build
+  - deploy                      # Doosra stage: deploy
+
+build:                          # Job ka naam
+  stage: build                  # Ye job build stage ka hissa hai
+  image: maven:3.8.1-jdk-17    # Job ke liye Maven + Java 17 image
+  script:                       # Job mein chalne wale commands
+    - git clone https://github.com/Pathnex/sample-java-app.git
+                                  # GitHub repository clone karo
+    - cd sample-java-app          # Project directory mein jao
+    - mvn clean compile           # Maven se code compile karo
+
+  only:                         # Job kab run hoga, uska legacy rule
+    - main                      # Sirf main branch par run karo
+
+deploy:                         # Deploy job ka naam
+  stage: deploy                 # Ye deploy stage mein chalega
+  image: alpine:latest          # Lightweight Alpine Linux image use karo
+  script:
+    - echo "Deploying to $CI_ENVIRONMENT_NAME by Pathnex"
+    # Environment name ke saath message print karo
+
+  only:                         # Job ke execution rules
+    variables:                  # Variable ki value check karo
+      - $CI_ENVIRONMENT_NAME == "dev"
+      # Variable dev ho tab job run karne ka rule
